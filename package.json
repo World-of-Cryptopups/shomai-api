@@ -1,0 +1,17 @@
+{
+  "name": "shomai-api",
+  "description": "API for shomai-web",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "deta": "^1.0.1",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.14"
+  }
+}
