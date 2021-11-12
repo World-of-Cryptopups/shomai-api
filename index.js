@@ -79,6 +79,34 @@ app.get("/blends/:collection/:id", async (req, res) => {
   }
 });
 
+app.get("/refunds/:wallet", async (req, res) => {
+  const { wallet } = req.params;
+  const { collection } = req.query;
+
+  const _collection = collection
+    ? Array.isArray(collection)
+      ? collection.join("")
+      : String(collection)
+    : "";
+
+  const q = await chainfetcher("/get_table_rows", {
+    json: true,
+    code: process.env.CONTRACT,
+    table: "nftrefunds",
+    scope: wallet,
+    limit: 999,
+  });
+
+  console.log(_collection);
+
+  res.send({
+    error: false,
+    data: q.rows.filter((q) =>
+      _collection ? q.collection === _collection : q.collection
+    ),
+  });
+});
+
 // run this only in dev environment
 if (process.env.NODE_ENV === "development") {
   app.listen(8000, () => {
