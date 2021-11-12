@@ -1,7 +1,7 @@
 const express = require("express");
 const { ATOMIC_ENDPOINT } = require("./atomicassets");
 const { fetcher, chainfetcher } = require("./fetcher");
-const { get_all_blends } = require("./lib/blends");
+const { get_all_blends, get_blend_id, BLENDTABLES } = require("./lib/blends");
 
 const app = express();
 
@@ -44,6 +44,32 @@ app.get("/blends/:collection", async (req, res) => {
     const q = await get_all_blends(collection);
 
     res.send({ error: false, data: q });
+  } catch (e) {
+    // if there was a problem, send 500 error
+    res.status(500).send({
+      error: true,
+      message: `Internal server error. Catch Message: ${String(e)}`,
+    });
+  }
+});
+
+app.get("/blends/:collection/:id", async (req, res) => {
+  const { collection, id } = req.params;
+  const [_id, type] = id.split("-");
+
+  const k = BLENDTABLES[type];
+  if (!k) return;
+  try {
+    const [num, q] = await get_blend_id(collection, k.name, _id);
+
+    res.status(num).send({
+      error: num === 404,
+      data: {
+        ...k,
+        data: q,
+      },
+      message: num === 404 ? "404 Not Found" : undefined,
+    });
   } catch (e) {
     // if there was a problem, send 500 error
     res.status(500).send({
