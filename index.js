@@ -53,6 +53,9 @@ app.get("/blends/:collection", async (req, res) => {
   }
 });
 
+/**
+ * Get the specific config of a blender.
+ */
 app.get("/blends/:collection/:id", async (req, res) => {
   const { collection, id } = req.params;
   const [_id, type] = id.split("-");
@@ -79,6 +82,9 @@ app.get("/blends/:collection/:id", async (req, res) => {
   }
 });
 
+/**
+ * Get ReFUND assets.
+ */
 app.get("/refunds/:wallet", async (req, res) => {
   const { wallet } = req.params;
   const { collection } = req.query;
@@ -89,22 +95,28 @@ app.get("/refunds/:wallet", async (req, res) => {
       : String(collection)
     : "";
 
-  const q = await chainfetcher("/get_table_rows", {
-    json: true,
-    code: process.env.CONTRACT,
-    table: "nftrefunds",
-    scope: wallet,
-    limit: 999,
-  });
+  try {
+    const q = await chainfetcher("/get_table_rows", {
+      json: true,
+      code: process.env.CONTRACT,
+      table: "nftrefunds",
+      scope: wallet,
+      limit: 999,
+    });
 
-  console.log(_collection);
-
-  res.send({
-    error: false,
-    data: q.rows.filter((q) =>
-      _collection ? q.collection === _collection : q.collection
-    ),
-  });
+    res.send({
+      error: false,
+      data: q.rows.filter((q) =>
+        _collection ? q.collection === _collection : q.collection
+      ),
+    });
+  } catch (e) {
+    // if there was a problem, send 500 error
+    res.status(500).send({
+      error: true,
+      message: `Internal server error. Catch Message: ${String(e)}`,
+    });
+  }
 });
 
 // run this only in dev environment
