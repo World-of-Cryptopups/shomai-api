@@ -1,15 +1,20 @@
 const express = require("express");
+const cors = require("cors");
+
 const { ATOMIC_ENDPOINT } = require("./atomicassets");
 const { fetcher, chainfetcher } = require("./fetcher");
 const { get_all_blends, get_blend_id, BLENDTABLES } = require("./lib/blends");
 
 const app = express();
 
+// cors
+app.use(cors());
+
 /**
  * Index page
  */
 app.get("/", (req, res) => {
-  return res.send({
+  return res.json({
     message: "API Data for Shomaii Blends",
   });
 });
@@ -22,13 +27,13 @@ app.get("/collections/:collection", async (req, res) => {
 
   const rq = await fetcher(ATOMIC_ENDPOINT + `/collections/${collection}`);
   if (!rq.success) {
-    return res.status(404).send({
+    return res.status(404).json({
       error: true,
       message: rq.message,
     });
   }
 
-  res.send({
+  res.json({
     error: false,
     data: rq.data,
   });
@@ -43,10 +48,10 @@ app.get("/blends/:collection", async (req, res) => {
   try {
     const q = await get_all_blends(collection);
 
-    res.send({ error: false, data: q });
+    res.json({ error: false, data: q });
   } catch (e) {
     // if there was a problem, send 500 error
-    res.status(500).send({
+    res.status(500).json({
       error: true,
       message: `Internal server error. Catch Message: ${String(e)}`,
     });
@@ -65,7 +70,7 @@ app.get("/blends/:collection/:id", async (req, res) => {
   try {
     const [num, q] = await get_blend_id(collection, k.name, _id);
 
-    res.status(num).send({
+    res.status(num).json({
       error: num === 404,
       data: {
         ...k,
@@ -75,7 +80,7 @@ app.get("/blends/:collection/:id", async (req, res) => {
     });
   } catch (e) {
     // if there was a problem, send 500 error
-    res.status(500).send({
+    res.status(500).json({
       error: true,
       message: `Internal server error. Catch Message: ${String(e)}`,
     });
@@ -104,7 +109,7 @@ app.get("/refunds/:wallet", async (req, res) => {
       limit: 999,
     });
 
-    res.send({
+    res.json({
       error: false,
       data: q.rows.filter((q) =>
         _collection ? q.collection === _collection : q.collection
@@ -112,7 +117,7 @@ app.get("/refunds/:wallet", async (req, res) => {
     });
   } catch (e) {
     // if there was a problem, send 500 error
-    res.status(500).send({
+    res.status(500).json({
       error: true,
       message: `Internal server error. Catch Message: ${String(e)}`,
     });
@@ -133,10 +138,10 @@ app.get("/servicelist", async (req, res) => {
     });
 
     // send the whitelists
-    res.send({ error: false, data: q.rows[0] });
+    res.json({ error: false, data: q.rows[0] });
   } catch (e) {
     // if there was a problem, send 500 error
-    res.status(500).send({
+    res.status(500).json({
       error: true,
       message: `Internal server error. Catch Message: ${String(e)}`,
     });
@@ -165,13 +170,13 @@ app.get("/claims/:collection", async (req, res) => {
       limit: 999,
     });
 
-    res.send({
+    res.json({
       error: false,
       data: q.rows.filter((q) => (_wallet ? q.blender === _wallet : q.blender)),
     });
   } catch (e) {
     // if there was a problem, send 500 error
-    res.status(500).send({
+    res.status(500).json({
       error: true,
       message: `Internal server error. Catch Message: ${String(e)}`,
     });
