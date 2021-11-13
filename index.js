@@ -143,6 +143,41 @@ app.get("/servicelist", async (req, res) => {
   }
 });
 
+/**
+ * Get claims of a user in a specific collection.
+ */
+app.get("/claims/:collection", async (req, res) => {
+  const { collection } = req.params;
+  const { wallet } = req.query;
+
+  const _wallet = wallet
+    ? Array.isArray(wallet)
+      ? wallet.join("")
+      : String(wallet)
+    : "";
+
+  try {
+    const q = await chainfetcher("/get_table_rows", {
+      json: true,
+      code: process.env.CONTRACT,
+      table: "claimassets",
+      scope: collection,
+      limit: 999,
+    });
+
+    res.send({
+      error: false,
+      data: q.rows.filter((q) => (_wallet ? q.blender === _wallet : q.blender)),
+    });
+  } catch (e) {
+    // if there was a problem, send 500 error
+    res.status(500).send({
+      error: true,
+      message: `Internal server error. Catch Message: ${String(e)}`,
+    });
+  }
+});
+
 // run this only in dev environment
 if (process.env.NODE_ENV === "development") {
   app.listen(8000, () => {
