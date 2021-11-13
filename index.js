@@ -119,6 +119,30 @@ app.get("/refunds/:wallet", async (req, res) => {
   }
 });
 
+/**
+ * Get the whitelisted and blacklisted collections.
+ */
+app.get("/servicelist", async (req, res) => {
+  try {
+    const q = await chainfetcher("/get_table_rows", {
+      json: true,
+      code: process.env.CONTRACT,
+      table: "sysconfigs",
+      scope: process.env.CONTRACT,
+      limit: 1,
+    });
+
+    // send the whitelists
+    res.send({ error: false, data: q.rows[0] });
+  } catch (e) {
+    // if there was a problem, send 500 error
+    res.status(500).send({
+      error: true,
+      message: `Internal server error. Catch Message: ${String(e)}`,
+    });
+  }
+});
+
 // run this only in dev environment
 if (process.env.NODE_ENV === "development") {
   app.listen(8000, () => {
