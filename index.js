@@ -125,6 +125,41 @@ app.get("/refunds/:wallet", async (req, res) => {
 });
 
 /**
+ * Fetch the blendconfig of the blender id.
+ */
+app.get("/blendconfig", async (req, res) => {
+  const { blenderid, collection } = req.query;
+  if (blenderid === "" || collection === "") {
+    res.status(200).json({});
+    return;
+  }
+
+  try {
+    const q = await chainfetcher("/get_table_rows", {
+      json: true,
+      code: process.env.CONTRACT,
+      table: "blendconfig",
+      scope: collection,
+      limit: 1,
+      lower_bound: blenderid,
+    });
+
+    res.status(200).json({
+      error: false,
+      data: q.rows[0] ?? {},
+    });
+  } catch (e) {
+    console.error(e);
+
+    // if there was a problem, send 500 error
+    res.status(500).send({
+      error: true,
+      message: `Internal server error. Catch Message: ${String(e)}`,
+    });
+  }
+});
+
+/**
  * Get the whitelisted and blacklisted collections.
  */
 app.get("/servicelist", async (req, res) => {
