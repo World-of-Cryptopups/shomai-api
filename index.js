@@ -142,17 +142,124 @@ app.get("/blendconfig", async (req, res) => {
       scope: collection,
       limit: 1,
       lower_bound: blenderid,
+      upper_bound: blenderid,
     });
 
     res.status(200).json({
       error: false,
-      data: q.rows[0] ?? {},
+      data: q.rows[0] ?? null,
     });
   } catch (e) {
     console.error(e);
 
     // if there was a problem, send 500 error
     res.status(500).send({
+      error: true,
+      message: `Internal server error. Catch Message: ${String(e)}`,
+    });
+  }
+});
+
+/**
+ * Get the blend stats / total uses.
+ */
+app.get("/blendstats", async (req, res) => {
+  const { blenderid, collection } = req.query;
+  if (blenderid === "" || collection === "") {
+    res.status(200).json({});
+    return;
+  }
+
+  try {
+    const q = await chainfetcher("/get_table_rows", {
+      json: true,
+      code: process.env.CONTRACT,
+      table: "blendstats",
+      scope: collection,
+      limit: 1,
+      lower_bound: blenderid,
+      upper_bound: blenderid,
+    });
+
+    res.status(200).json({
+      error: false,
+      data: q.rows[0] ?? null,
+    });
+  } catch (e) {
+    console.error(e);
+
+    // if there was a problem, send 500 error
+    res.status(500).send({
+      error: true,
+      message: `Internal server error. Catch Message: ${String(e)}`,
+    });
+  }
+});
+
+/**
+ * Get the blend user use.
+ */
+app.get("/blenduseruses", async (req, res) => {
+  const { blenderid, user } = req.query;
+  if (blenderid === "" || user === "") {
+    res.status(200).json({});
+    return;
+  }
+
+  try {
+    const q = await chainfetcher("/get_table_rows", {
+      json: true,
+      code: process.env.CONTRACT,
+      table: "blendcfuses",
+      scope: user,
+      limit: 1,
+      lower_bound: blenderid,
+      upper_bound: blenderid,
+    });
+
+    res.status(200).json({
+      error: false,
+      data: q.rows[0] ?? null,
+    });
+  } catch (e) {
+    console.error(e);
+
+    // if there was a problem, send 500 error
+    res.status(500).send({
+      error: true,
+      message: `Internal server error. Catch Message: ${String(e)}`,
+    });
+  }
+});
+
+/**
+ * Get the whitelisted and blacklisted collections.
+ */
+app.get("/rambalances", async (req, res) => {
+  const { collection } = req.query;
+  if (collection === "") {
+    res.status(200).json({});
+    return;
+  }
+
+  try {
+    const q = await chainfetcher("/get_table_rows", {
+      json: true,
+      code: process.env.CONTRACT,
+      table: "rambalances",
+      index_positon: 1,
+      key_type: "name",
+      scope: process.env.CONTRACT,
+      limit: 1,
+      lower_bound: collection,
+      upper_bound: collection,
+    });
+
+    // send the whitelists
+    res.json({ error: false, data: q.rows[0] });
+  } catch (e) {
+    // if there was a problem, send 500 error
+    res.status(500).json({
       error: true,
       message: `Internal server error. Catch Message: ${String(e)}`,
     });
